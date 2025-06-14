@@ -1,13 +1,13 @@
 .venv/
 aclImdb_v1/
 amazon/
-components/models/
+components/models/classifiers
+components/models/generators
 components/notebooks/train_texts.txt
 components/utils/__pycache__/
 dashboard/extern/__pycache__/
 dashboard/static/img/
 dashboard/uploads/
-img/
 test/
 paper.docx
 ~$paper.docx

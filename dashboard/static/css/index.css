@@ -108,7 +108,35 @@ td {
     color: #333;
 }
 
-table button {
+table a {
+    background-color: var(--color8);
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+table a:hover {
+    background-color: var(--color8);
+}
+
+table a .svg {
+    display: flex;
+    align-items: center;
+}
+
+table a svg {
+    fill: white;
+}
+
+table a.download {
     background-color: #34a853;
     color: white;
     border: none;
@@ -119,17 +147,18 @@ table button {
     gap: 8px;
     font-size: 14px;
     transition: background-color 0.3s ease;
+    text-decoration: none;
 }
 
-table button:hover {
+table a.download:hover {
     background-color: #2e944a;
 }
 
-table button .svg {
+table a.download .svg {
     display: flex;
     align-items: center;
 }
 
-table button svg {
+table a.download svg {
     fill: white;
 }

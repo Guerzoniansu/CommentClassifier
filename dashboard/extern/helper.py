@@ -31,6 +31,14 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.offline as pyo
 
+import requests
+import io
+import tempfile
+import os
+
+# Global cache for models
+MODEL_CACHE = {}
+
 stop_words = set(stopwords.words('english'))
 # 'movie', 'movies', 'film', 'films', 'cinema', 'screen', 'scene', 'actor', 'actress', 'actors', 'character', 'characters', 'director', 
 custom_stopwords = {
@@ -41,35 +49,35 @@ custom_stopwords = {
 MODEL_MAPPING = {
     'lstm_word': {
         'tokenizer': 'word',
-        'model': 'classifier_sentiment_word_tokenized_lstm_model.h5'
+        'model': '17sJ0R3VEJinqlll7AHkxMq3p5D8K0G4H'
     },
     'lstm_subword': {
         'tokenizer': 'bpe',
-        'model': 'classifier_sentiment_subword_tokenized_lstm_model.h5'
+        'model': '1YkUZBf4fQ1PbszwUWecNwVhptlSopeT9'
     },
     'lstm_gpt2': {
         'tokenizer': 'tiktoken',
-        'model': 'classifier_sentiment_subword_tokenized_pretrained_gpt2_lstm_model.h5'
+        'model': '1MDuqyBtK2aHFL3Fa2Sl4NOHI7hnsiMqQ'
     },
     'gru_word': {
         'tokenizer': 'word',
-        'model': 'classifier_sentiment_word_tokenized_gru_model.h5'
+        'model': '1T0XL1BhjlY7u0oaxMqINLxSpHZzAGz9P'
     },
     'gru_subword': {
         'tokenizer': 'bpe',
-        'model': 'classifier_sentiment_subword_tokenized_gru_model.h5'
+        'model': '1iC19qTdLufCdNTxuifk3b609Bl4eoaFX'
     },
     'gru_gpt2': {
         'tokenizer': 'tiktoken',
-        'model': 'classifier_sentiment_subword_tokenized_pretrained_gpt2_gru_model.h5'
+        'model': '1mambCuFKBMgQ5Kx1TbwIzGRo-_eqFRwF'
     },
     'transformer_subword': {
         'tokenizer': 'bpe',
-        'model': 'classifier_sentiment_subword_tokenized_transformer_model.h5'
+        'model': '1yCxtYTKHbjaZmgH0zCvRM_Aat6VBRpUa'
     },
     'transformer_gpt2': {
         'tokenizer': 'tiktoken',
-        'model': 'classifier_sentiment_subword_tokenized_pretrained_gpt2_transformer_model.h5'
+        'model': '1vAq0GYGqJrBfj1AXUpSEqEJFYcxWyBiR'
     }
 }
 
@@ -263,6 +271,39 @@ def generate_sample_table_data(df, column_name, n_samples=10):
     
     return samples
 
+
+def load_model_from_drive_cached(drive_file_id):
+    """Load H5 model from Google Drive with in-memory caching"""
+    
+    # Check if model is already in cache
+    if drive_file_id in MODEL_CACHE:
+        print("Using cached model...")
+        return MODEL_CACHE[drive_file_id]
+    
+    url = f"https://drive.google.com/uc?id={drive_file_id}&export=download"
+    
+    print("Loading model from Google Drive...")
+    response = requests.get(url, timeout=300)  # 5 minute timeout
+    response.raise_for_status()
+    
+    # Create a temporary file
+    with tempfile.NamedTemporaryFile(suffix='.h5', delete=False) as temp_file:
+        temp_file.write(response.content)
+        temp_file_path = temp_file.name
+    
+    try:
+        # Load the model
+        model = load_model(temp_file_path)
+        
+        # Cache the model in memory
+        MODEL_CACHE[drive_file_id] = model
+        
+        print("Model loaded and cached successfully!")
+        return model
+    finally:
+        # Clean up the temporary file immediately
+        os.unlink(temp_file_path)
+
 def predict(df, column_name, model_id):
     """
     Corrected prediction function with proper error handling and tokenizer loading
@@ -276,7 +317,6 @@ def predict(df, column_name, model_id):
     selected_model = MODEL_MAPPING[model_keys[model_id]]
     
     tokenizer_name = selected_model['tokenizer']
-    model_path = f"../components/models/classifiers/{selected_model['model']}"
 
     # Load the tokenizer with corrected logic
     if tokenizer_name == 'tiktoken':
@@ -310,7 +350,8 @@ def predict(df, column_name, model_id):
                 return encoded[:BPE_MAX_LEN]
 
     # Load the model
-    model = load_model(model_path)
+    drive_file_id = selected_model['model']
+    model = load_model_from_drive_cached(drive_file_id)
 
     # Prepare the input
     texts = df[column_name].astype(str).tolist()
