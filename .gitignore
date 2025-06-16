@@ -6,7 +6,6 @@ components/models/generators
 components/notebooks/train_texts.txt
 components/utils/__pycache__/
 dashboard/extern/__pycache__/
-dashboard/static/img/
 dashboard/uploads/
 test/
 paper.docx
