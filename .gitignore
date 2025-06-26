@@ -8,6 +8,5 @@ components/utils/__pycache__/
 dashboard/extern/__pycache__/
 dashboard/uploads/
 test/
-paper.docx
 ~$paper.docx
 token.txt
